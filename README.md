@@ -6,12 +6,24 @@ Note that [github.com/factbook](https://github.com/factbook) is a complete info 
 
 ## Get the raw data
 
-This is my [raw data source](https://www.cia.gov/the-world-factbook/about/archives/) in commpressed html files (years 2001 up to 2020). You can find older info in [Project Gutenberg](https://www.gutenberg.org/).
+This is [my raw data source](https://www.cia.gov/the-world-factbook/about/archives/). Here there compressed html files (years 2000 up to 2020). You can find older info in [Project Gutenberg](https://www.gutenberg.org/).
 
 ### Steps, Linux Machine
 
-1. Go to [source/bash_scripts](./source/bash_scripts) and execute the script start.sh
+#### First step
+Go to [source/bash_scripts](./source/bash_scripts) and execute the script start.sh
 
-2. In the directory [~/Data/CIA/factbook/factbook_html_zip](~/Data/CIA/factbook/factbook_html_zip)
+The script start.sh builds the directory [~/Data/CIA/factbook/factbook_html_zip](~/Data/CIA/factbook/factbook_html_zip).
+This script uses wget to download an html page from [my raw data source](https://www.cia.gov/the-world-factbook/about/archives/), and then uses awk to extract some urls to zip files.
+
+You can find the output of start.sh at the directory [~/Data/CIA/factbook/factbook_html_zip](~/Data/CIA/factbook/factbook_html_zip): 
+1. index.html
+2. download.txt
+3. zip_links.txt
+
+#### Second step
+Go to [source/bash_scripts](./source/bash_scripts) and execute the script download.sh
+
+
 
 
