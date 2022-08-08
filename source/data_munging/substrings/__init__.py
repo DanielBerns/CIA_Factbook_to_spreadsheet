@@ -1,1 +1,1 @@
-from .core import main, compare 
+from .core import main, compare, show_collector

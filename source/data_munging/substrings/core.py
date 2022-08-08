@@ -37,6 +37,11 @@ def compare(source, target):
 #     return collector
 
 
+def show_collector(collector):
+    for key, positions in collector.items():
+        for start, stop in positions:
+            yield key, start, stop
+
 def main(red=None, blue=None):
     if red is None:
         red = 'uglz roses y fair bees'
