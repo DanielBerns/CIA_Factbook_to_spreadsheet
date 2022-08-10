@@ -1,1 +1,1 @@
-from .core import main, compare, show_collector
+from data_munging.substrings.core import main, compare, show_collector
