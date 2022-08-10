@@ -5,3 +5,6 @@ def read_text_file(text_file: Path) -> str:
     with open(text_file, 'r') as source:
         text = source.read()
     return text
+
+def main() -> None:
+    print('readers.api.main')
