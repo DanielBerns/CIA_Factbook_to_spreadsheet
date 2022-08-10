@@ -6,3 +6,4 @@ q = str(p.parent)
 sys.path.insert(0, q)
 
 import substrings
+import readers
