@@ -1,11 +1,11 @@
-from app import create_app, db, cli
-from app.models import User, Post, Message, Notification, Task
+import logging
 
-app = create_app()
-cli.register(app)
+from actions.core.api import get_logger, add_stream_handler
 
-
-@app.shell_context_processor
-def make_shell_context():
-    return {'db': db, 'User': User, 'Post': Post, 'Message': Message,
-            'Notification': Notification, 'Task': Task}
+def main() -> None:
+    logger = get_logger(__file__)
+    add_stream_handler(logger, logging.DEBUG)
+    logger.info('this is a test')
+    
+if __name__ == '__main__':
+    main()
