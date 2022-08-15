@@ -25,4 +25,4 @@ def set_environment_variables(instance: str) -> None:
     print('set_environment_variables done')
     
 if __name__ == '__main__':
-   
+   set_environment_variables('datamunging_configure_demo')
