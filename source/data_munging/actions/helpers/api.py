@@ -1,6 +1,11 @@
+import agrparse
 import datetime
 import json
 from pathlib import Path
+from typing import Dict
+
+# https://pypi.org/project/python-dotenv/
+from dotenv import load_dotenv
 
 
 def get_timestamp():
@@ -28,4 +33,46 @@ def get_directory(base: Path):
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     return directory
 
+
+def get_args(datapath: str) -> Dict[str, str]:
+    """Construct the argument parser and parse the arguments
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--dotenvpath", 
+                        type=str,  default=datapath,
+                        help="path where dotenv lives")
+    args = vars(parser.parse_args())
+    return args
+
+
+def default_reports_directory(application: str) -> Path:
+    path = Path('~', 'Reports', 'data_munging', application)
+    return get_directory(path)
+
+
+def write_dotenv_example(
+    dotenv_abspath: Path, 
+    reports_directory: Path) -> None:
+    """Write an example dotenv file, with expected keys.
+       User may modify the values, and add remarks.
+       See https://pypi.org/project/python-dotenv/
+    """
+    with open(dotenv_abspath, 'w') as target:
+        target.write("SECRET_KEY=11111111\n")
+        target.write("LOG_TO_STDOUT=YES\n")        
+        target.write(f"REPORTS_DIRECTORY={str(reports_directory):s}\n\n")    
+
+
+def set_environment_variables(application: str) -> None:
+    print('set_environment_variables start')
+    args = get_args(str(Path('~', 'Data', application).expanduser()))
+    datapath = Path(args['datapath']).resolve()
+    print('set_environment_variables datapath', str(datapath))
+    datapath.mkdir(mode=0o700, parents=True, exist_ok=True)
+    dotenv_abspath = Path(datapath, '.env')
+    reports_directory = default_reports_directory(application)
+    if not dotenv_abspath.exists():
+        write_dotenv_example(dotenv_abspath, reports_directory)
+    load_dotenv(dotenv_abspath)
+    print('set_environment_variables done')
 
