@@ -8,7 +8,8 @@ Goal: learn how to develop software doing data scraping from the CIA World Factb
 2. Data files live in ~/Data/CIA/factbook/factbook_html_zip
 
 ### Bash scripts
-I use bash scripts to download zip files with the data from the CIA website and decompress them.
+I use bash scripts to download zip files with the data from the CIA website and decompress them. 
+However, I want to use python scripts, to configure all the code from one point (a class Config)
 
 
 ## sprint #2 20220810 
@@ -53,3 +54,10 @@ Problems:
         |--> configure.py      # python-dotenv
 
 
+## sprint #3 20220816
+
+Now, I have data from the CIA World Factbook, years 2000 to 2020, downloaded and unzipped in ~/Data/CIA/factbook/factbook_html_zip
+
+1. I need to read all the files, one at the time, scrap the data and write some records for further processing.
+
+2. I have seen the [video](https://www.youtube.com/watch?v=iCE1bDoit9Q). 

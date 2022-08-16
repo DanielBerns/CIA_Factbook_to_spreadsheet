@@ -1,8 +1,8 @@
-import agrparse
+import argparse
 import datetime
 import json
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Iterator
 
 # https://pypi.org/project/python-dotenv/
 from dotenv import load_dotenv
@@ -51,13 +51,13 @@ def default_reports_directory(application: str) -> Path:
 
 
 def write_dotenv_example(
-    dotenv_abspath: Path, 
+    dotenv_directory: Path, 
     reports_directory: Path) -> None:
     """Write an example dotenv file, with expected keys.
        User may modify the values, and add remarks.
        See https://pypi.org/project/python-dotenv/
     """
-    with open(dotenv_abspath, 'w') as target:
+    with open(dotenv_directory, 'w') as target:
         target.write("SECRET_KEY=11111111\n")
         target.write("LOG_TO_STDOUT=YES\n")        
         target.write(f"REPORTS_DIRECTORY={str(reports_directory):s}\n\n")    
@@ -76,3 +76,11 @@ def set_environment_variables(application: str) -> None:
     load_dotenv(dotenv_abspath)
     print('set_environment_variables done')
 
+
+def write_text(
+    text_directory: Path,
+    string_iterator: Iterator[str]
+    ) -> None:
+    with open(dotenv_directory, 'w') as target:
+        for string in string_iterator:
+            target.write(f'{string:s}\n')

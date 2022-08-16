@@ -47,8 +47,8 @@ class DataMungingCase(unittest.TestCase):
         logger.info('We are here at test_logging')
     
     def test_eda(self):
-        with ac.eda.api.get_target() as target,
-             ac.eda.api.get_source() as source,
+        with ac.eda.api.get_target() as target, \
+             ac.eda.api.get_source() as source:
              for event in source.read():
                  target.update(event)
 
