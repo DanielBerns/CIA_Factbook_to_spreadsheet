@@ -9,7 +9,7 @@ def main():
                      'factbook', 
                      'factbook_html_zip',
                      'download.txt').expanduser()
-    text = readers.api.read_text_file(this_file)
+    text = readers.api.slurp_text_file(this_file)
     print(text)
     
 if __name__ == '__main__':

@@ -34,12 +34,12 @@ def get_directory(base: Path):
     return directory
 
 
-def get_args(datapath: str) -> Dict[str, str]:
+def get_args(dotenv_path: str) -> Dict[str, str]:
     """Construct the argument parser and parse the arguments
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--dotenvpath", 
-                        type=str,  default=datapath,
+    parser.add_argument("-d", "--dotenv_path", 
+                        type=str,  default=dotenv_path,
                         help="path where dotenv lives")
     args = vars(parser.parse_args())
     return args
@@ -66,21 +66,21 @@ def write_dotenv_example(
 def set_environment_variables(application: str) -> None:
     print('set_environment_variables start')
     args = get_args(str(Path('~', 'Data', application).expanduser()))
-    datapath = Path(args['datapath']).resolve()
-    print('set_environment_variables datapath', str(datapath))
-    datapath.mkdir(mode=0o700, parents=True, exist_ok=True)
-    dotenv_abspath = Path(datapath, '.env')
+    print('set_environment_variables args', str(args))
+    base = get_directory(Path(args['dotenv_path']).resolve())
+    print('set_environment_variables dotenv_path', str(base))
+    dotenv_path = Path(base, '.env')
     reports_directory = default_reports_directory(application)
-    if not dotenv_abspath.exists():
-        write_dotenv_example(dotenv_abspath, reports_directory)
-    load_dotenv(dotenv_abspath)
+    if not dotenv_path.exists():
+        write_dotenv_example(dotenv_path, reports_directory)
+    load_dotenv(dotenv_path)
     print('set_environment_variables done')
 
 
-def write_text(
-    text_directory: Path,
-    string_iterator: Iterator[str]
-    ) -> None:
-    with open(dotenv_directory, 'w') as target:
-        for string in string_iterator:
-            target.write(f'{string:s}\n')
+# def write_text(
+#     text_directory: Path,
+#     string_iterator: Iterator[str]
+#     ) -> None:
+#     with open(dotenv_directory, 'w') as target:
+#         for string in string_iterator:
+#             target.write(f'{string:s}\n')

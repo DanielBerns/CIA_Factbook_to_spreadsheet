@@ -9,7 +9,7 @@ Goal: learn how to develop software doing data scraping from the CIA World Factb
 
 ### Bash scripts
 I use bash scripts to download zip files with the data from the CIA website and decompress them. 
-However, I want to use python scripts, to configure all the code from one point (a class Config)
+However, I want to use python scripts, to configure all the code from one point (class Config)
 
 
 ## sprint #2 20220810 
@@ -25,8 +25,8 @@ I merge:
 
 Problems:
 
-1. The problem with **Microblog** style is all the tests live in a file, in the same directory of datamunging apps.
-2. The problem with **Python structure** style is that I like *Microblog* style :-; and I don't know how to use in tests.
+1. The problem with **Microblog** style is all the tests live in one file, in the same directory of datamunging apps.
+2. The problem with **Python structure** style (import via tests/context.py) is that I like **Microblog import style** :-; and I don't know how to use in tests.
 
 ### data_munging conventions
 

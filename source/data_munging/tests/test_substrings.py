@@ -4,6 +4,7 @@ from pathlib import Path
 
 import unittest
 
+
 def print_text(text: str) -> str:
     print('start', text[:80])
     print('end', text[-80:])
@@ -43,6 +44,7 @@ class DataMungingCase(unittest.TestCase):
         factbook_years = ["factbook-2000", "factbook-2001"]
         for root, a_file, mimetype in actions.readers.read_root_and_file_with_mimetypes(directory):
             print('-', str(root), '-', a_file, ':', mimetype)
+
 
 
 if __name__ == '__main__':

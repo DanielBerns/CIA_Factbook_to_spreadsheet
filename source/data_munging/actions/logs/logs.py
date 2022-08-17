@@ -1,7 +1,14 @@
-import logging
+import logging.handlers
 from pathlib import Path
 
 from typing import Callable
+
+from actions.helpers import get_directory
+
+def logs_path(
+    reports_directory: Path
+    ) -> Path:
+    return get_directory(Path(reports_directory, 'logs'))
 
 def add_stream_handler(
     logger: logging.Logger,
@@ -17,12 +24,11 @@ def add_stream_handler(
 
 def add_rotating_file_handler(
     logger: logging.Logger,
-    logs_base: Path,
-    logging_name,
+    reports_directory: Path,
     logging_level: int = logging.DEBUG
     ) -> None:
-    file_handler = RotatingFileHandler(
-        Path(logs_base, logging_name),
+    file_handler = logging.handlers.RotatingFileHandler(
+        Path(logs_path(reports_directory), 'logs.txt'),
         maxBytes=10240, backupCount=10
     )
     file_handler.setFormatter(logging.Formatter(
