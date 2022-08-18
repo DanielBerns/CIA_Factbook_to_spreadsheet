@@ -11,3 +11,4 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or '11235813213455'
     LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT')
     REPORTS_DIRECTORY = os.environ.get('REPORTS_DIRECTORY')
+ 

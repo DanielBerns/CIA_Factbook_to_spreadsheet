@@ -3,7 +3,9 @@ from pathlib import Path
 
 from typing import Callable
 
+from actions.config import Config
 from actions.helpers import get_directory
+
 
 def logs_path(
     reports_directory: Path
@@ -46,4 +48,17 @@ def get_logger(
     logger = logging.getLogger(name)
     logger.setLevel(logging_level)
     add_handler(logger)
+    return logger
+
+
+def start_logs(experiment: str, version: str, codepoint: str) -> None:
+    log_handler = None
+    if Config.LOG_TO_STDOUT == "YES":
+        log_handler = lambda logger: add_stream_handler(logger)
+    else:
+        log_handler = lambda logger: add_rotating_file_handler(
+            logger, 
+            reports_directory=Config.REPORTS_DIRECTORY)        
+    logger = get_logger(name, log_handler)
+    logger.info(f'We are here at {experiment:s}:{version:s} - {codepoint:s}')
     return logger
