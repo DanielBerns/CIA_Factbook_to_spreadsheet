@@ -8,10 +8,14 @@ from actions.processors import (FactbookFilesMimetypeProcessor,
 def main() -> None:
     logger = start_logs('data_munger', 'alpha', 'data_munging/data_munger')
     mimetype_stats = FactbookFilesMimetypeProcessor()
-    for factbook, root, filename, mimetype in iterate_factbooks_files():
+    logger.info('before iterate_factbooks_files')
+    for number, (factbook, root, filename, mimetype) in enumerate(iterate_factbooks_files()):
         mimetype_stats.update(factbook, root, filename, mimetype)
+    logger.info('after iterate_factbooks_files')
+    logger.info('starting reports')
     with create_report('data_munger', 'alpha', 'mimetype_stats.md') as target:
         mimetype_stats.report(target)
+    logger.info('done reports')
 
 
 if __name__ == '__main__':

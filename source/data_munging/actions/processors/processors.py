@@ -1,9 +1,11 @@
 from collections import Counter, defaultdict
 from typing import Protocol, Dict, Tuple, TextIO
 from pathlib import Path
+from contextlib import contextmanager
 
 from actions.readers import read_root_and_file_with_mimetype
-from config import Config, DATA_DIRECTORY
+from actions.helpers import get_directory
+from actions.config import Config, DATA_DIRECTORY
 
 FIRST_YEAR = 2000
 LAST_YEAR = 2020
@@ -61,7 +63,7 @@ class FactbookFilesMimetypeProcessor:
         for factbook, mimetype_counters in self.mimetypes_per_factbook.items():
             target.write(f'{factbook:s}\n')
             for mimetype, count in mimetype_counters.items():
-                target.write(f'  {mimetype:s}: {count:d}\n')        
+                target.write(f'  {str(mimetype):s}: {count:d}\n')        
 
 
 class FactbookFilesPatternsProcessor:
@@ -81,9 +83,10 @@ class FactbookFilesPatternsProcessor:
     def report(self, target: TextIO) -> None:
         self.patterns.report(target)
 
-
+@contextmanager
 def create_report(experiment: str, version: str, filename: str):
-    with open(Path(Config.REPORTS_DIRECTORY, experiment, version, filename), 'w') as resource:
+    directory = get_directory(Path(Config.REPORTS_DIRECTORY, experiment, version))
+    with open(Path(directory, filename), 'w') as resource:
         try:
             yield resource
         finally:

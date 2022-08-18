@@ -61,3 +61,5 @@ Now, I have data from the CIA World Factbook, years 2000 to 2020, downloaded and
 1. I need to read all the files, one at the time, scrap the data and write some records for further processing.
 
 2. I have seen the [video](https://www.youtube.com/watch?v=iCE1bDoit9Q). 
+
+3. I need to write some tests: read all the files, get root, filename, and mimetype and do some stats, report stats

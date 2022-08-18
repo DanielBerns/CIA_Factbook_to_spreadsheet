@@ -59,6 +59,6 @@ def start_logs(experiment: str, version: str, codepoint: str) -> None:
         log_handler = lambda logger: add_rotating_file_handler(
             logger, 
             reports_directory=Config.REPORTS_DIRECTORY)        
-    logger = get_logger(name, log_handler)
+    logger = get_logger(f'{experiment:s}-{version:s}', log_handler)
     logger.info(f'We are here at {experiment:s}:{version:s} - {codepoint:s}')
     return logger

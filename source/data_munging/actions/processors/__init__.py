@@ -6,4 +6,5 @@ from actions.processors.processors import (iterate_factbooks_files,
                                            FactbookFilesPatternsProcessor,
                                            FactbookFilesProcessor,
                                            TextProcessor,
-                                           FactbookFilter)
+                                           FactbookFilter,
+                                           create_report)
