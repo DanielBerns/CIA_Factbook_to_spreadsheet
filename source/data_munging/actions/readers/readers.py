@@ -1,32 +1,54 @@
 import os
-from pathlib import Path 
-from typing import Tuple
+from pathlib import Path
+from typing import Tuple, Generator
 import mimetypes
+from dataclasses import dataclass
+
+from actions.config import DATA_DIRECTORY
+
 
 def slurp_text_file(text_file: Path) -> str:
     text = None
-    with open(text_file, 'r') as source:
+    with open(text_file, "r") as source:
         text = source.read()
     return text
 
 
-def readlines_text_file(text_file: Path) -> str:
-    with open(text_file, 'r') as source:
+def readlines_text_file(text_file: Path) -> Generator[str, None, None]:
+    with open(text_file, "r") as source:
         for line in source:
             yield line
 
 
-def read_root_and_file(directory: Path) -> Tuple[Path, str]:
-    for root, dirs, files in os.walk(directory, topdown=False):
-        for a_file in files:
-            yield root, a_file
+@dataclass
+class FactbookFilesEvent:
+    factbook: str
+    root: str
+    filename: str
+    mimetype: str
 
 
-def read_root_and_file_with_mimetype(directory: Path) -> Tuple[Path, str, str]:
-    for root, a_file in read_root_and_file(directory):
-        a_file_mimetype = mimetypes.guess_type(Path(root, a_file))
-        yield root, a_file, a_file_mimetype[0]
+def read_factbook_files_event(
+    factbook: str,
+) -> Generator[FactbookFilesEvent, None, None]:
+    base = Path(DATA_DIRECTORY, factbook)
+    for root, dirs, files in os.walk(base, topdown=False):
+        for filename in files:
+            file_mimetype = mimetypes.guess_type(Path(root, filename))
+            yield FactbookFilesEvent(factbook, root, filename, str(file_mimetype))
 
 
-def main() -> None:
-    print('readers.api.main')
+FIRST_YEAR: int = 2000
+LAST_YEAR: int = 2020
+
+
+def iterate_factbook_files(
+    first_year: int = FIRST_YEAR, last_year: int = LAST_YEAR
+) -> Generator[FactbookFilesEvent, None, None]:
+    assert FIRST_YEAR <= first_year <= LAST_YEAR
+    assert FIRST_YEAR <= last_year <= LAST_YEAR
+    assert first_year <= last_year
+    factbooks = [f"factbook-{year:d}" for year in range(first_year, last_year + 1)]
+    for a_factbook in factbooks:
+        for event in read_factbook_files_event(a_factbook):
+            yield event

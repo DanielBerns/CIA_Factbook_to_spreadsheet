@@ -4,12 +4,12 @@ from pathlib import Path
 
 import unittest
 
-def print_text(text: str) -> str:
+def print_text(text: str) -> None:
     print('start', text[:80])
     print('end', text[-80:])
     print('length', len(text))
 
-class DataMungingCase(unittest.TestCase):
+class ActionsTestCase(unittest.TestCase):
         
     def test_compare_text(self):
         a, b = 1, 2
@@ -17,6 +17,8 @@ class DataMungingCase(unittest.TestCase):
         blue = f"testing nada color azul"
         collector = actions.substrings.compare(red, blue)
         print('\n')
+        for key, start, stop in actions.substrings.common_substrings(collector):
+            print(start, stop, key)
 
     def test_compare_html(self):
         print('\n')
@@ -31,18 +33,10 @@ class DataMungingCase(unittest.TestCase):
         for key, start, stop in actions.substrings.common_substrings(collector):
             print(start, stop, key)
 
-    def test_read_root_and_file(self):
+    def test_iterate_factbook_files(self):
         print('\n')
-        directory = Path("~", "Data", "CIA", "factbook", "factbook_html_zip").expanduser()
-        for number, (root, a_file) in enumerate(actions.readers.read_root_and_file(directory)):
-            print(number, '-', str(root), '-', a_file)
-            
-    def test_get_root_and_file_with_mimetypes(self):
-        print('\n')
-        directory = Path("~", "Data", "CIA", "factbook", "factbook_html_zip").expanduser()
-        factbook_years = ["factbook-2000", "factbook-2001"]
-        for root, a_file, mimetype in actions.readers.read_root_and_file_with_mimetypes(directory):
-            print('-', str(root), '-', a_file, ':', mimetype)
+        for event in actions.readers.iterate_factbook_files(first_year=2005, last_year=2007):
+            print(event.factbook, '-', event.root, '-', event.filename, ':', event.mimetype)
 
 
 if __name__ == '__main__':

@@ -1,97 +1,176 @@
 from collections import Counter, defaultdict
-from typing import Protocol, Dict, Tuple, TextIO
+from typing import (Protocol, Dict, TextIO, List, Optional, Generator, Callable)
 from pathlib import Path
 from contextlib import contextmanager
+from dataclasses import dataclass
 
-from actions.readers import read_root_and_file_with_mimetype
+from actions.readers import (
+    read_factbook_files_event,
+    iterate_factbook_files,
+    FactbookFilesEvent,
+    slurp_text_file,
+)
 from actions.helpers import get_directory
 from actions.config import Config, DATA_DIRECTORY
 
-FIRST_YEAR = 2000
-LAST_YEAR = 2020
+str_filter_fn = Callable[[str], bool]
 
-def iterate_factbooks_files() -> Tuple[str, Path, str, str]:
-    factbooks = [f'factbook-{year:d}' for year in range(FIRST_YEAR, LAST_YEAR + 1)]
-    for a_factbook in factbooks:
-        a_factbook_base = Path(DATA_DIRECTORY, a_factbook)
-        for root, filename, mimetype in read_root_and_file_with_mimetype(a_factbook_base):
-            yield a_factbook, root, filename, mimetype
+def default_str_fn(value: str) -> bool:
+    return True
 
+gate_fn = Callable[[List[bool]], bool]
 
+def and_fn(array: List[bool]) -> bool:
+    return all(array)
+
+def or_fn(array: List[bool]) -> bool:
+    return any(array)
+
+def not_fn(value: bool) -> bool:
+    return not value
+
+@dataclass
 class FactbookFilter:
-    def accepts(factbook: str, root: Path, filename: str, mimetype: str) -> bool:
-        pass
+    factbook: str_filter_fn = default_str_fn
+    root: str_filter_fn = default_str_fn
+    filename: str_filter_fn = default_str_fn
+    mimetype: str_filter_fn = default_str_fn
+    gate: gate_fn = and_fn
+
+    def accepts(self, event: FactbookFilesEvent) -> bool:
+        values = []
+        values.append(self.factbook(event.factbook))
+        values.append(self.root(event.root))
+        values.append(self.filename(event.filename))
+        values.append(self.mimetype(event.mimetype))
+        return self.gate(values)
 
 
-def filter_factbooks_files(events_filter: FactbookFilter) -> Tuple[str, Path, str, str]:
-    for factbook, root, filename, mimetype in iterate_factbooks_files():
-        if events_filter.accepts(factbook, root, filename, mimetype):
-            yield factbook, root, filename, mimetype
+def filter_factbook_files(
+    events_filter: FactbookFilter,
+) -> Generator[FactbookFilesEvent, None, None]:
+    for event in iterate_factbook_files():
+        if events_filter.accepts(event):
+            yield event
 
 
 class FactbookFilesProcessor(Protocol):
-    def update(self, factbook: str, root: Path, filename: str, mimetype: str) -> None:
+    def update(self, event: FactbookFilesEvent) -> None:
         pass
-    
+
     def report(self, target: TextIO) -> None:
         pass
 
 
-class TextProcessor(Protocol):
-    def mimetype(self) -> str:
-        pass
-
-    def update(self, text: str) -> None:
-        pass
-    
-    def report(self, target: TextIO) -> None:
-        pass
-    
-    
 class FactbookFilesMimetypeProcessor:
+    def __init__(self) -> None:
+        self._store: Dict = defaultdict(lambda: defaultdict(Counter))
+
+    @property
+    def store(self) -> Dict:
+        return self._store
+
+    def update(self, event: FactbookFilesEvent) -> None:
+        self.store[event.factbook][event.root][event.mimetype] += 1
+
+    def report(self, target: TextIO) -> None:
+        for factbook, root_counters in self.store.items():
+            target.write(f"{factbook:s}\n")
+            for root, mimetype_counters in root_counters.items():
+                target.write(f"  {root:s}\n")
+                for mimetype, count in mimetype_counters.items():
+                    target.write(f"    {str(mimetype):s}: {count:d}\n")
+
+
+class EventProcessor:
+    def __init__(self, store: Dict):
+        self._store: Dict = store
+
+    @property
+    def store(self) -> Dict:
+        return self._store
+
+    def update(self, event: FactbookFilesEvent) -> None:
+        raise NotImplementedError()
+
+    def report(self, target: TextIO) -> None:
+        raise NotImplementedError()
+
+
+class FilesPerFactbookProcessor(EventProcessor):
     def __init__(self):
-        self._mimetypes_per_factbook = defaultdict(Counter)
-        
-    @property
-    def mimetypes_per_factbook(self):
-        return self._mimetypes_per_factbook
-        
-    def update(self, factbook: str, root: Path, filename: str, mimetype: str) -> None:
-        self.mimetypes_per_factbook[factbook][mimetype] += 1
-    
+        store = defaultdict(list)
+        super().__init__(store)
+
+    def update(self, event: FactbookFilesEvent) -> None:
+        file_identifier = Path(event.root, event.filename)
+        self.store[event.factbook].append(file_identifier)
+
     def report(self, target: TextIO) -> None:
-        for factbook, mimetype_counters in self.mimetypes_per_factbook.items():
-            target.write(f'{factbook:s}\n')
-            for mimetype, count in mimetype_counters.items():
-                target.write(f'  {str(mimetype):s}: {count:d}\n')        
+        for key, values in self.store.items():
+            target.write(f"{str(key):s}\n")
+            for v in values:
+                target.write(f"  {str(v):s}\n")
 
 
-class FactbookFilesPatternsProcessor:
-    def __init__(self, patterns: TextProcessor):
-        self._patterns = patterns
-        
-    @property
-    def patterns(self):
-        return self._patterns
-    
-    def update(self, factbook: str, root: Path, filename: str, mimetype: str) -> None:
-        if mimetype != self.patterns.mimetype():
-            return
-        text = actions.readers.slurp_text_file(Path(root, filename))
-        self.patterns.extract(text)
-    
+class Target(Protocol):
     def report(self, target: TextIO) -> None:
-        self.patterns.report(target)
+        pass
+
+    
+class ContentProcessor:
+    def __init__(self, store):
+        self._store: Dict = dict()
+
+    @property
+    def store(self) -> Dict:
+        return self._store
+
+    def update(self, key: str, content: str) -> None:
+        self.store[key] = self.transform(content)
+
+    def report(self, target: TextIO) -> None:
+        raise NotImplementedError()
+
+    def transform(self, content: str) -> List[Target]:
+        raise NotImplementedError()
+    
+
+
+class FactbookFilesContentProcessor:
+    def __init__(self, 
+                 content_processor: ContentProcessor,
+                 event_filter: FactbookFilter) -> None:
+        self._content_processor: ContentProcessor = content_processor
+        self._event_filter: FactbookFilter = event_filter
+
+    @property
+    def content_processor(self) -> ContentProcessor:
+        return self._content_processor
+
+    def update(self, event: FactbookFilesEvent) -> None:
+        if self.event_filter.accepts(event):
+            content = slurp_text_file(Path(event.root, event.filename))
+            self.text_processor.update(content)
+
+    def report(self, target: TextIO) -> None:
+        self.content_processor.report(target)
+
 
 @contextmanager
-def create_report(experiment: str, version: str, filename: str):
-    directory = get_directory(Path(Config.REPORTS_DIRECTORY, experiment, version))
-    with open(Path(directory, filename), 'w') as resource:
+def create_report(experiment: str, version: str, folder: str, filename: str):
+    directory = get_directory(Path(Config.REPORTS_DIRECTORY, experiment, version, folder))
+    with open(Path(directory, filename), "w") as resource:
         try:
             yield resource
         finally:
             resource.close()
 
-
-if __name__ == '__main__':
-    main()
+@contextmanager
+def create_datafile(experiment: str, version: str, folder: str, filename: str):
+    directory = get_directory(Path(Config.REPORTS_DIRECTORY, experiment, version, folder))
+    with open(Path(directory, filename), "w") as resource:
+        try:
+            yield resource
+        finally:
+            resource.close()

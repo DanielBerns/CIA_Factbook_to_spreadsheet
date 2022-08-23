@@ -1,10 +1,13 @@
-from actions.processors.processors import (iterate_factbooks_files, 
-                                           filter_factbooks_files,
-                                           FIRST_YEAR, 
-                                           LAST_YEAR,
-                                           FactbookFilesMimetypeProcessor,
-                                           FactbookFilesPatternsProcessor,
-                                           FactbookFilesProcessor,
-                                           TextProcessor,
-                                           FactbookFilter,
-                                           create_report)
+from actions.processors.processors import (
+    filter_factbook_files,
+    create_report,
+    create_datafile,
+    FactbookFilter,
+    FactbookFilesProcessor,
+    FactbookFilesMimetypeProcessor,
+    EventProcessor,
+    FilesPerFactbookProcessor,
+    Target,
+    ContentProcessor,
+    FactbookFilesContentProcessor,    
+)

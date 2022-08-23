@@ -1,1 +1,1 @@
-from actions.config.config import Config, APPLICATION, DATA_DIRECTORY 
+from actions.config.config import Config, APPLICATION, VERSION, DATA_DIRECTORY

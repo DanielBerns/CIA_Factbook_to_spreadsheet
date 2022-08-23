@@ -10,20 +10,24 @@ from dotenv import load_dotenv
 
 def get_timestamp():
     now = datetime.datetime.now()
-    timestamp = ''.join([f'{now.year:4d}{now.month:02d}',
-                         f'{now.day:02d}{now.hour:02d}',
-                         f'{now.minute:02d}'])
+    timestamp = "".join(
+        [
+            f"{now.year:4d}{now.month:02d}",
+            f"{now.day:02d}{now.hour:02d}",
+            f"{now.minute:02d}",
+        ]
+    )
     return timestamp
 
 
 def save_metadata(metadata_path, metadata):
-    with open(metadata_path, 'w') as target:
+    with open(metadata_path, "w") as target:
         json.dump(metadata, target)
 
 
 def load_metadata(metadata_path):
     metadata = None
-    with open(metadata_path, 'r') as source:
+    with open(metadata_path, "r") as source:
         metadata = json.load(source)
     return metadata
 
@@ -35,46 +39,47 @@ def get_directory(base: Path):
 
 
 def get_args(dotenv_path: str) -> Dict[str, str]:
-    """Construct the argument parser and parse the arguments
-    """
+    """Construct the argument parser and parse the arguments"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--dotenv_path", 
-                        type=str,  default=dotenv_path,
-                        help="path where dotenv lives")
+    parser.add_argument(
+        "-d",
+        "--dotenv_path",
+        type=str,
+        default=dotenv_path,
+        help="path where dotenv lives",
+    )
     args = vars(parser.parse_args())
     return args
 
 
 def default_reports_directory(application: str) -> Path:
-    path = Path('~', 'Reports', 'data_munging', application)
+    path = Path("~", "Reports", "data_munging", application)
     return get_directory(path)
 
 
-def write_dotenv_example(
-    dotenv_directory: Path, 
-    reports_directory: Path) -> None:
+def write_dotenv_example(dotenv_directory: Path, reports_directory: Path) -> None:
     """Write an example dotenv file, with expected keys.
-       User may modify the values, and add remarks.
-       See https://pypi.org/project/python-dotenv/
+    User may modify the values, and add remarks.
+    See https://pypi.org/project/python-dotenv/
     """
-    with open(dotenv_directory, 'w') as target:
+    with open(dotenv_directory, "w") as target:
         target.write("SECRET_KEY=11111111\n")
-        target.write("LOG_TO_STDOUT=YES\n")        
-        target.write(f"REPORTS_DIRECTORY={str(reports_directory):s}\n\n")    
+        target.write("LOG_TO_STDOUT=YES\n")
+        target.write(f"REPORTS_DIRECTORY={str(reports_directory):s}\n\n")
 
 
 def set_environment_variables(application: str) -> None:
-    print('set_environment_variables start')
-    args = get_args(str(Path('~', 'Data', application).expanduser()))
-    print('set_environment_variables args', str(args))
-    base = get_directory(Path(args['dotenv_path']).resolve())
-    print('set_environment_variables dotenv_path', str(base))
-    dotenv_path = Path(base, '.env')
+    print("set_environment_variables start")
+    args = get_args(str(Path("~", "Data", application).expanduser()))
+    print("set_environment_variables args", str(args))
+    base = get_directory(Path(args["dotenv_path"]).resolve())
+    print("set_environment_variables dotenv_path", str(base))
+    dotenv_path = Path(base, ".env")
     reports_directory = default_reports_directory(application)
     if not dotenv_path.exists():
         write_dotenv_example(dotenv_path, reports_directory)
     load_dotenv(dotenv_path)
-    print('set_environment_variables done')
+    print("set_environment_variables done")
 
 
 # def write_text(

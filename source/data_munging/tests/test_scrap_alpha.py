@@ -9,8 +9,8 @@ class ScrapCase(unittest.TestCase):
         
     def test_mimetype_with_counters_standardlib(self):
         mimetypes_per_factbook = defaultdict(Counter)
-        for factbook, root, filename, mimetype in actions.processors.iterate_factbooks_files():
-            mimetypes_per_factbook[factbook][mimetype] += 1
+        for event in actions.processors.iterate_factbook_files():
+            mimetypes_per_factbook[event.factbook][event.mimetype] += 1
             
         for factbook, mimetype_counters in mimetypes_per_factbook.items():
             print(factbook)
