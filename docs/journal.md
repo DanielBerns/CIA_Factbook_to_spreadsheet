@@ -62,4 +62,4 @@ Now, I have data from the CIA World Factbook, years 2000 to 2020, downloaded and
 
 2. I have seen the [video](https://www.youtube.com/watch?v=iCE1bDoit9Q). 
 
-3. I need to write some tests: read all the files, get root, filename, and mimetype and do some stats, report stats
+3. I need to write some tests: read all the files, get root, filename, and mimetype and do some stats, report stats.

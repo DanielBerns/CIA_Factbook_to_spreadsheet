@@ -11,7 +11,7 @@ from actions.readers import (
     slurp_text_file,
 )
 from actions.helpers import get_directory
-from actions.config import Config, DATA_DIRECTORY
+from actions.config import Config
 
 str_filter_fn = Callable[[str], bool]
 
@@ -158,18 +158,44 @@ class FactbookFilesContentProcessor:
 
 
 @contextmanager
-def create_report(experiment: str, version: str, folder: str, filename: str):
-    directory = get_directory(Path(Config.REPORTS_DIRECTORY, experiment, version, folder))
+def create_report(
+    experiment: str, 
+    version: str, 
+    folder: str, 
+    filename: str,
+    directory: Path = Config.APPLICATION_REPORTS
+    ):
+    base = get_directory(Path(directory, experiment, version, folder))
     with open(Path(directory, filename), "w") as resource:
         try:
             yield resource
         finally:
             resource.close()
 
+
 @contextmanager
-def create_datafile(experiment: str, version: str, folder: str, filename: str):
-    directory = get_directory(Path(Config.REPORTS_DIRECTORY, experiment, version, folder))
-    with open(Path(directory, filename), "w") as resource:
+def write_datafile(
+    experiment: str, 
+    version: str, 
+    folder: str, 
+    filename: str,
+    directory: Path = Config.APPLICATION_DATA):
+    base = get_directory(Path(directory, experiment, version, folder))
+    with open(Path(base, filename), "w") as resource:
+        try:
+            yield resource
+        finally:
+            resource.close()
+
+@contextmanager
+def read_datafile(
+    experiment: str, 
+    version: str, 
+    folder: str, 
+    filename: str,
+    directory: Path = Config.APPLICATION_DATA):
+    base = get_directory(Path(directory, experiment, version, folder))
+    with open(Path(base, filename), "r") as resource:
         try:
             yield resource
         finally:

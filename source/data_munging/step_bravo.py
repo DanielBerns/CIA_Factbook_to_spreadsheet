@@ -4,22 +4,25 @@ from actions.readers import iterate_factbook_files, slurp_text_file
 from actions.processors import (FactbookFilesMimetypeProcessor, 
                                 FilesPerFactbookProcessor,
                                 FactbookFilter,
-                                create_report)
+                                create_report,
+                                read_datafile,
+                                write_datafile)
 from actions.parsers import (Source, Selector, Match, Grab, Repeat, Document, Parser)
+from actions.config import WORLD_FACTBOOK_RAW_DATA
 
 from pathlib import Path
 
-experiment = 'extract_factbook_fields'
+experiment = 'step_bravo'
 version = get_timestamp()
 
 def root_fn(root: str) -> bool:
     return root.endswith('fields')
 
 
-
-def get_fb_2000_fields(field: str) -> None:
-    text_path = Path("~", "Data", "CIA", 
-                     "factbook", "factbook_html_zip", "factbook-2000", "fields", 
+def get_factbook_fields(factbook: str, field: str) -> None:
+    # factbook = "factbook-2000"
+    text_path = Path(WORLD_FACTBOOK_RAW_DATA, 
+                     factbook, "fields", 
                      field + '.html').expanduser()
     text = slurp_text_file(text_path)
     source = Source(text, end=len(text))
@@ -30,9 +33,10 @@ def get_fb_2000_fields(field: str) -> None:
     p_skip = Match('<p>')
     p_grab = Grab('<p>', identifier='p_grab')
     repeat_p_grab = Repeat([p_grab])
-    document = Document([title_match, title_grab, p_skip, repeat_p_grab])
+    document = Document([title_match, title_grab, p_skip, selector, repeat_p_grab])
     document.process(source)
-    with create_report(experiment, version, f'fb_2000-fields-{field:s}_html.md') as target:
+    
+    with write_datafile(experiment, version, factbook, f'{field:s}_html.md') as target:
         target.write(f'# {field:s}\n\n')
         title_grab.report(target)
         target.write('\n\n')
@@ -42,34 +46,23 @@ def get_fb_2000_fields(field: str) -> None:
 
    
 def main() -> None:
-    logger = start_logs(experiment, version, 'data_munging/extract_factbook_fields.py')
+    experiment = 'step_bravo'
+    version = get_timestamp()
+    Parser.logger = logger = start_logs(experiment, version, 'data_munging/step_bravo.py')
 
-    # ~/Reports/data_munging/CIA_World_Factbook_Albatros/data_munger/202208221753/field_stats.md
-    logger.info('get_factbook_fields')
-    report_fields_stats = Path(
-    with open(report_fields_stats) as source:
-        for line in source:
-            if line[0] == ' ':
-                pass
-            else:
-
-    # logger.info('get_fb_2000_fields start')
-    # with open('./data/2000_fields.csv') as source:
-    #     for line in source:
-    #         field = line[:-1]
-    #         logger.info(f'get_2000_fields: {field:s}')
-    #         get_fb_2000_fields(field)
-    # logger.info('get_fb_2000_fields done')
-
-
+    factbook = "factbook-2000"
+    timestamp = "202208231713"
     
-    logger.info('starting reports')
-    with create_report(experiment, version, 'mimetype_stats.md') as target:
-        mimetype_stats.report(target)
-    with create_report(experiment, version, 'field_stats.md') as target:
-        files_per_factbook.report(target)        
-    logger.info('done reports')
-
+    logger.info(f'{experiment:s} - {version:s} start')
+    logger.info(f'get_factbook_fields start: {factbook:s} - {timestamp:s}')
+    
+    with read_datafile('step_alpha', timestamp, str(Path('fields', factbook)), 'fields.csv') as source:
+        for line in source:
+            field = line[:-1]
+            logger.info(f'{factbook:s}: {field:s}')
+            get_factbook_fields(factbook, field)
+    logger.info(f'get_factbook_fields done: {factbook:s} - {timestamp:s}')
+    logger.info(f'{experiment:s} - {version:s} done')
 
 if __name__ == '__main__':
     main()

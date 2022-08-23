@@ -4,7 +4,7 @@ from typing import Tuple, Generator
 import mimetypes
 from dataclasses import dataclass
 
-from actions.config import DATA_DIRECTORY
+from actions.config import WORLD_FACTBOOK_RAW_DATA
 
 
 def slurp_text_file(text_file: Path) -> str:
@@ -29,9 +29,9 @@ class FactbookFilesEvent:
 
 
 def read_factbook_files_event(
-    factbook: str,
+    factbook: str, directory: Path = WORLD_FACTBOOK_RAW_DATA
 ) -> Generator[FactbookFilesEvent, None, None]:
-    base = Path(DATA_DIRECTORY, factbook)
+    base = Path(directory, factbook)
     for root, dirs, files in os.walk(base, topdown=False):
         for filename in files:
             file_mimetype = mimetypes.guess_type(Path(root, filename))
