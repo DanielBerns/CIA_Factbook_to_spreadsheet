@@ -53,9 +53,9 @@ def start_logs(experiment: str, version: str, codepoint: str) -> logging.Logger:
     if Config.LOG_TO_STDOUT == "YES":
         log_handler = lambda logger: add_stream_handler(logger)
     else:
-        print('Logs directory:', Config.REPORTS_DIRECTORY)
+        print('Logs directory:', Config.APPLICATION_REPORTS)
         log_handler = lambda logger: add_rotating_file_handler(
-            logger, reports_directory=Config.REPORTS_DIRECTORY
+            logger, reports_directory=Config.APPLICATION_REPORTS
         )
     identifier = f"{experiment:s}-{version:s}"
     logger = get_logger(identifier, log_handler)
