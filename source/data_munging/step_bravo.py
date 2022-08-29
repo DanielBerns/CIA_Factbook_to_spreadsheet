@@ -57,8 +57,35 @@ def get_fields_factbook_2001(factbook: str, field: str) -> None:
     selector = Selector('</body>')
     title_match = Match('<title>', identifier='title_match')
     title_grab = Grab('</title>', identifier='title_grab')
+    table_end = Match('</table>')
     data_start = Match('<font face="arial" size="2">')
     data_grab = Grab('<font face="arial" size="2">', identifier='data_grab')
+    repeat_data_grab = Repeat([data_grab])
+    document = Document([title_match, title_grab, table_end, data_start, selector, repeat_data_grab])
+    document.process(source)
+    with write_datafile(experiment, version, factbook, f'{field:s}_html.md') as target:
+        target.write(f'# {field:s}\n\n')
+        title_grab.report(target)
+        target.write('\n\n')
+        data_grab.report(target)
+        target.write('\n\n')
+        document.report(target)
+
+# <table width="90%" cellspacing="0" cellpadding="4" border="1" bgcolor="#FFFFFF" align="center">
+def get_fields_factbook_2002(factbook: str, field: str) -> None:
+    assert factbook == "factbook-2002"
+    text_path = Path(WORLD_FACTBOOK_RAW_DATA, 
+                     factbook, "fields", 
+                     field + '.html').expanduser()
+    text = slurp_text_file(text_path)
+    source = Source(text, end=len(text))
+
+    selector = Selector('</body>')
+    title_match = Match('<title>', identifier='title_match')
+    title_grab = Grab('</title>', identifier='title_grab')
+
+    data_start = Match('<table width="90%" cellspacing="0" cellpadding="4" border="1" bgcolor="#FFFFFF" align="center">')
+    data_grab = Grab('</table>', identifier='data_grab')
     repeat_data_grab = Repeat([data_grab])
     document = Document([title_match, title_grab, data_start, selector, repeat_data_grab])
     document.process(source)
@@ -70,7 +97,6 @@ def get_fields_factbook_2001(factbook: str, field: str) -> None:
         target.write('\n\n')
         document.report(target)
 
-    
 
 def get_fields(experiment: str, version: str, factbook: str, timestamp: str):    
     with read_datafile('step_alpha', timestamp, str(Path('fields', factbook)), 'fields.csv') as source:
@@ -83,24 +109,31 @@ def main() -> None:
 
     Parser.logger = logger = start_logs(experiment, version, 'data_munging/step_bravo.py')
 
-    timestamp = "202208231713"
+    step_alpha_timestamp = "202208231713"
 
     factbook = "factbook-2000"
     logger.info(f'{experiment:s} - {version:s} start')
-    logger.info(f'get_fields start: {factbook:s} - {timestamp:s}')
-    for field in get_fields(experiment, version, factbook, timestamp):
+    logger.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
+    for field in get_fields(experiment, version, factbook, step_alpha_timestamp):
         get_fields_factbook_2000(factbook, field)
-    logger.info(f'get_fields done: {factbook:s} - {timestamp:s}')
+    logger.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
     logger.info(f'{experiment:s} - {version:s} done')
 
     factbook = "factbook-2001"
     logger.info(f'{experiment:s} - {version:s} start')
-    logger.info(f'get_fields start: {factbook:s} - {timestamp:s}')
-    for field in get_fields(experiment, version, factbook, timestamp):
+    logger.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
+    for field in get_fields(experiment, version, factbook, step_alpha_timestamp):
         get_fields_factbook_2001(factbook, field)
-    logger.info(f'get_fields done: {factbook:s} - {timestamp:s}')
+    logger.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
     logger.info(f'{experiment:s} - {version:s} done')
 
+    factbook = "factbook-2002"
+    logger.info(f'{experiment:s} - {version:s} start')
+    logger.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
+    for field in get_fields(experiment, version, factbook, step_alpha_timestamp):
+        get_fields_factbook_2002(factbook, field)
+    logger.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
+    logger.info(f'{experiment:s} - {version:s} done')
 
 if __name__ == '__main__':
     main()
