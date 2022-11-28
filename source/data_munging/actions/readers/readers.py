@@ -23,7 +23,7 @@ def readlines_text_file(text_file: Path) -> Generator[str, None, None]:
 @dataclass
 class FactbookFilesEvent:
     factbook: str
-    root: str
+    label: str
     filename: str
     mimetype: str
 

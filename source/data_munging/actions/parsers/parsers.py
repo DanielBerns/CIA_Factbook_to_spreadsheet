@@ -1,13 +1,13 @@
 from typing import List, TextIO, Optional, Protocol, Dict, DefaultDict, Tuple
 from collections import defaultdict
-import logging
+
 
 Table = DefaultDict[str, List[int]]
 
 def get_table(content: str) -> Table:
     table = defaultdict(list)
-    for p, c in enumerate(content):
-        table[c].append(p)
+    for position, c in enumerate(content):
+        table[c].append(position)
     return table
 
 
@@ -20,7 +20,7 @@ class Source:
         self._begin: int = begin
         self._end: int = end
         self._cursor: int = begin
-        self._table: Table = get_table(content)
+        # self._table: Table = get_table(content)
 
     @property
     def content(self) -> str:
@@ -54,37 +54,51 @@ class Source:
     def match(self, prefix: str) -> bool:
         if self.cursor >= self.end:
             return False
-        p = self.content.find(prefix, self.cursor, self.end)
-        if p < 0:
+        position = self.content.find(prefix, self.cursor, self.end)
+        if position < 0:
             return False
         else:
-            self.cursor = p + len(prefix)
+            self.cursor = position + len(prefix)
             return True
         
     def grab(self, suffix: str) -> Tuple[bool, Optional[str]]:
         if self.cursor >= self.end:
             return False, None
-        p = self.content.find(suffix, self.cursor, self.end)
-        if p < 0:
+        position = self.content.find(suffix, self.cursor, self.end)
+        if position < 0:
             return False, self.content[self.cursor: self.end]
         else:
-            info = self.content[self.cursor: p]
-            self.cursor = p + len(suffix)
+            info = self.content[self.cursor: position]
+            self.cursor = position + len(suffix)
             return True, info
 
     def discard_suffix(self, suffix: str) -> bool:
         if self.cursor >= self.end:
             return False
-        p = self.content.find(suffix, self.cursor, self.end)
-        self.end = p
-        return p > 0
+        position = self.content.find(suffix, self.cursor, self.end)
+        self.end = position
+        return position > 0
 
-       
+    def extract_tag(self, tagname: str) -> Tuple[bool, str]:
+        if self.cursor >= self.end:
+            return False
+        prefix = f'<{tagname:s} '
+        suffix = '>'
+        left = self.content.find(prefix, self.cursor, self.end)
+        if left < 0:
+            return False, self.content[self.cursor: self.end]
+        else:
+            left += len(prefix)
+            right = self.content.find(suffix, left)
+            if right < 0:
+                return False, self.content[left: self.end]
+            else:
+                self.cursor = right
+                return True, self.content[left: right]
+
+
 class Parser:
-    logger: Optional[logging.Logger] = None
-
     def __init__(self, identifier: str = 'Parser') -> None:
-        assert Parser.logger is not None
         self._identifier: str = identifier
 
     @property
@@ -107,9 +121,55 @@ class Selector(Parser):
     def process(self, source: Source) -> bool:
         matched = True
         matched = source.discard_suffix(self.suffix)
-        Parser.logger.info(f'{self.identifier:s}.process: discard_suffix({self.suffix:s}) == {str(matched):s}')
         return matched
 
+    
+class SearchTag(Parser):
+    def __init__(self, 
+                 tagname: str, 
+                 expected_attributes: Dict[str, str],
+                 identifier: str = 'SearchTag') -> None:
+        super().__init__(identifier)
+        self._tagname: str = tagname
+        self._expected_attributes: Dict[str, str] = expected_attributes
+        
+    @property
+    def tagname(self) -> str:
+        return self._tagname
+
+    @property
+    def expected_attributes(self) -> Dict[str, str]:
+        return self._expected_attributes
+
+    def verify_attributes(self, extracted_attributes: Dict[str, str]) -> bool:
+        tests = [self.expected_attributes.get(key, None) == value for key, value in extracted_attributes.items()]
+        return all(tests)                
+        
+    def get_tag_and_attributes(self, source: Source) -> bool:
+        extracted, content = source.extract_tag(self.tagname)
+        if extracted:
+            if content:
+                extracted_attributes = dict()
+                simple_content = simplify(content)
+                parts = simple_content.split(' ')
+                for a_part in parts:
+                    try:
+                        (key, value) = a_part.split('=')
+                        extracted_attributes[key] = value
+                    except ValueError:
+                        break
+                return self.verify_attributes(extracted_attributes)
+            else:
+                return False
+        else:
+            return False
+
+    def process(self, source: Source) -> bool:
+        go_on = source.cursor < source.end and not self.get_tag_and_attributes(source)
+        while go_on:
+            go_on = source.cursor < source.end and not self.get_tag_and_attributes(source)
+        return source.cursor < source._end
+    
 
 class Match(Parser):
     def __init__(self, prefix: str, identifier: str = 'Match') -> None:
@@ -121,9 +181,7 @@ class Match(Parser):
         return self._prefix
     
     def process(self, source: Source) -> bool:
-        matched = source.match(self.prefix)
-        Parser.logger.info(f'{self.identifier:s}.process: match({self.prefix:s}) == {str(matched):s}')            
-        return matched
+        return source.match(self.prefix)
 
 
 def simplify(string: str):
@@ -152,8 +210,6 @@ class Grab(Parser):
 
     def process(self, source: Source) -> bool:
         grabbed, value = source.grab(self.suffix)
-        # Parser.logger.info(f'{self.identifier:s}.process: grab({self.suffix:s}) == {grabbed}')            
-        # Parser.logger.info(f'  {value:s}')
         self.store.append(simplify(value))
         return grabbed
 
@@ -162,6 +218,7 @@ class Grab(Parser):
         for value in self.store:
             target.write(f'  {value:s}\n')
         target.write('\n')
+
 
 class Sequence(Parser):
     
@@ -188,15 +245,11 @@ class Repeat(Sequence):
         super().__init__(fragments, identifier=identifier)
 
     def process(self, source: Source) -> bool:
-        Parser.logger.info(f'Repeat.process start')        
         pass_counter = 0
         matched = super().process(source) 
-        Parser.logger.info(f'Repeat.process: {self.identifier:s} pass #{pass_counter:d} == {str(matched):s}')
         while matched:
             pass_counter += 1
             matched = super().process(source)
-            Parser.logger.info(f'Repeat.process: {self.identifier:s} pass #{pass_counter:d} == {str(matched):s}')
-        Parser.logger.info(f'Repeat.process done')        
 
 
 class Document(Sequence):
@@ -205,9 +258,10 @@ class Document(Sequence):
 
     def process(self, source: Source) -> bool:
         matched = super().process(source)
-        Parser.logger.info(f'Document.process: {self.identifier:s} == {str(matched):s}')
+        LOGS.info(f'Document.process: {self.identifier:s} == {str(matched):s}')
     
     def report(self, target: TextIO) -> None:
         target.write(f'## {self.identifier:s}\n')
         target.write('\n')
+
 

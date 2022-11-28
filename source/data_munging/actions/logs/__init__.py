@@ -1,1 +1,1 @@
-from actions.logs.logs import start_logs
+from actions.logs.logs import start_logs, LOGS

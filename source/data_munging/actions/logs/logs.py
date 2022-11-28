@@ -1,11 +1,8 @@
 import logging.handlers
 from pathlib import Path
 
-from typing import Callable
+from typing import Callable, Optional
 
-from actions.config import Config
-from actions.helpers import get_directory
-from actions.parsers import Parser
 
 def logs_path(reports_directory: Path) -> Path:
     return get_directory(Path(reports_directory, "logs"))
@@ -30,7 +27,7 @@ def add_rotating_file_handler(
     )
     file_handler.setFormatter(
         logging.Formatter(
-            "%(asctime)s %(levelname)s: %(message)s " "[in %(pathname)s:%(lineno)d]"
+            "%(asctime)s - %(levelname)s= %(message)s [in %(pathname)s:%(lineno)d]"
         )
     )
     file_handler.setLevel(logging_level)
@@ -47,18 +44,21 @@ def get_logger(
     add_handler(logger)
     return logger
 
+from actions.config import Config, APPLICATION, VERSION
+from actions.helpers import get_directory
 
-def start_logs(experiment: str, version: str, codepoint: str) -> logging.Logger:
+
+def start_logs() -> None:
     log_handler = None
     if Config.LOG_TO_STDOUT == "YES":
+        print('STDOUT logging')
         log_handler = lambda logger: add_stream_handler(logger)
     else:
         print('Logs directory:', Config.APPLICATION_REPORTS)
         log_handler = lambda logger: add_rotating_file_handler(
             logger, reports_directory=Config.APPLICATION_REPORTS
         )
-    identifier = f"{experiment:s}-{version:s}"
-    logger = get_logger(identifier, log_handler)
-    logger.info(f"We are here at {identifier:s} - {codepoint:s}")
-    Parser.logger = logger
-    return logger
+    identifier = f"{APPLICATION:s}-{VERSION:s}"
+    return get_logger(identifier, log_handler)
+
+LOGS = start_logs()

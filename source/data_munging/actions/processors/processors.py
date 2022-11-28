@@ -32,7 +32,7 @@ def not_fn(value: bool) -> bool:
 @dataclass
 class FactbookFilter:
     factbook: str_filter_fn = default_str_fn
-    root: str_filter_fn = default_str_fn
+    label: str_filter_fn = default_str_fn
     filename: str_filter_fn = default_str_fn
     mimetype: str_filter_fn = default_str_fn
     gate: gate_fn = and_fn
@@ -40,13 +40,13 @@ class FactbookFilter:
     def accepts(self, event: FactbookFilesEvent) -> bool:
         values = []
         values.append(self.factbook(event.factbook))
-        values.append(self.root(event.root))
+        values.append(self.label(event.label))
         values.append(self.filename(event.filename))
         values.append(self.mimetype(event.mimetype))
         return self.gate(values)
 
 
-def filter_factbook_files(
+def filter_factbook_events(
     events_filter: FactbookFilter,
 ) -> Generator[FactbookFilesEvent, None, None]:
     for event in iterate_factbook_files():
@@ -62,26 +62,6 @@ class FactbookFilesProcessor(Protocol):
         pass
 
 
-class FactbookFilesMimetypeProcessor:
-    def __init__(self) -> None:
-        self._store: Dict = defaultdict(lambda: defaultdict(Counter))
-
-    @property
-    def store(self) -> Dict:
-        return self._store
-
-    def update(self, event: FactbookFilesEvent) -> None:
-        self.store[event.factbook][event.root][event.mimetype] += 1
-
-    def report(self, target: TextIO) -> None:
-        for factbook, root_counters in self.store.items():
-            target.write(f"{factbook:s}\n")
-            for root, mimetype_counters in root_counters.items():
-                target.write(f"  {root:s}\n")
-                for mimetype, count in mimetype_counters.items():
-                    target.write(f"    {str(mimetype):s}: {count:d}\n")
-
-
 class EventProcessor:
     def __init__(self, store: Dict):
         self._store: Dict = store
@@ -95,6 +75,39 @@ class EventProcessor:
 
     def report(self, target: TextIO) -> None:
         raise NotImplementedError()
+
+
+class EventCounterProcessor(EventProcessor):
+    def __init__(self) -> None:
+        store = Counter()
+        super().__init__(store)
+
+    def update(self, event: FactbookFilesEvent) -> None:
+        self.store[event.factbook] += 1
+        self.store[event.label] += 1        
+        self.store[event.mimetype] += 1
+
+    def report(self, target: TextIO) -> None:
+        for key, value in self.store.items():
+            target.write(f'{key:s}: {value:d}\n')
+
+class FactbookFilesMimetypeProcessor(EventProcessor):
+    def __init__(self) -> None:
+        store: Dict = defaultdict(
+            lambda: defaultdict(
+                Counter))
+        super().__init(store)
+
+    def update(self, event: FactbookFilesEvent) -> None:
+        self.store[event.factbook][event.label][event.mimetype] += 1
+
+    def report(self, target: TextIO) -> None:
+        for factbook, label_counters in self.store.items():
+            target.write(f"{factbook:s}\n")
+            for label, mimetype_counters in label_counters.items():
+                target.write(f"  {root:s}\n")
+                for mimetype, count in mimetype_counters.items():
+                    target.write(f"    {str(mimetype):s}: {count:d}\n")
 
 
 class FilesPerFactbookProcessor(EventProcessor):
@@ -174,7 +187,7 @@ def create_report(
 
 
 @contextmanager
-def write_datafile(
+def write_file(
     experiment: str, 
     version: str, 
     folder: str, 
@@ -188,7 +201,7 @@ def write_datafile(
             resource.close()
 
 @contextmanager
-def read_datafile(
+def read_file(
     experiment: str, 
     version: str, 
     folder: str, 

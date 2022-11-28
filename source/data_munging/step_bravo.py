@@ -1,4 +1,4 @@
-from actions.logs import start_logs
+from actions.logs import start_logs, LOGS
 from actions.helpers import get_timestamp
 from actions.readers import iterate_factbook_files, slurp_text_file
 from actions.processors import (FactbookFilesMimetypeProcessor, 
@@ -7,7 +7,7 @@ from actions.processors import (FactbookFilesMimetypeProcessor,
                                 create_report,
                                 read_datafile,
                                 write_datafile)
-from actions.parsers import (Source, Selector, Match, Grab, Repeat, Document, Parser)
+from actions.parsers import (Source, Selector, Match, Grab, Repeat, Document, Parser, SearchTag)
 from actions.config import WORLD_FACTBOOK_RAW_DATA
 
 from pathlib import Path
@@ -45,7 +45,6 @@ def get_fields_factbook_2000(factbook: str, field: str) -> None:
         document.report(target)
 
 
-
 def get_fields_factbook_2001(factbook: str, field: str) -> None:
     assert factbook == "factbook-2001"
     text_path = Path(WORLD_FACTBOOK_RAW_DATA, 
@@ -71,7 +70,8 @@ def get_fields_factbook_2001(factbook: str, field: str) -> None:
         target.write('\n\n')
         document.report(target)
 
-# <table width="90%" cellspacing="0" cellpadding="4" border="1" bgcolor="#FFFFFF" align="center">
+# import pdb
+
 def get_fields_factbook_2002(factbook: str, field: str) -> None:
     assert factbook == "factbook-2002"
     text_path = Path(WORLD_FACTBOOK_RAW_DATA, 
@@ -80,14 +80,21 @@ def get_fields_factbook_2002(factbook: str, field: str) -> None:
     text = slurp_text_file(text_path)
     source = Source(text, end=len(text))
 
-    selector = Selector('</body>')
+    # selector = Selector('</body>')
     title_match = Match('<title>', identifier='title_match')
     title_grab = Grab('</title>', identifier='title_grab')
 
-    data_start = Match('<table width="90%" cellspacing="0" cellpadding="4" border="1" bgcolor="#FFFFFF" align="center">')
-    data_grab = Grab('</table>', identifier='data_grab')
-    repeat_data_grab = Repeat([data_grab])
-    document = Document([title_match, title_grab, data_start, selector, repeat_data_grab])
+    tail = '<p align="center"><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FFFFFF"><i>'
+    expected_attributes = {
+        "width":'"90%"', 
+        "cellspacing":'"0"', 
+        "cellpadding":'"4"', 
+        "border":'"1"', 
+        "bgcolor":'"#FFFFFF"', 
+        "align":'"center"'}
+    data_start = SearchTag("table", expected_attributes)
+    data_grab = Grab(tail, identifier='data_grab')
+    document = Document([title_match, title_grab, data_start, data_grab])
     document.process(source)
     with write_datafile(experiment, version, factbook, f'{field:s}_html.md') as target:
         target.write(f'# {field:s}\n\n')
@@ -107,33 +114,33 @@ def get_fields(experiment: str, version: str, factbook: str, timestamp: str):
 
 def main() -> None:
 
-    Parser.logger = logger = start_logs(experiment, version, 'data_munging/step_bravo.py')
+    start_logs(experiment, version)
 
     step_alpha_timestamp = "202208231713"
 
     factbook = "factbook-2000"
-    logger.info(f'{experiment:s} - {version:s} start')
-    logger.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
+    LOGS.info(f'{experiment:s} - {version:s} start')
+    LOGS.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
     for field in get_fields(experiment, version, factbook, step_alpha_timestamp):
         get_fields_factbook_2000(factbook, field)
-    logger.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
-    logger.info(f'{experiment:s} - {version:s} done')
+    LOGS.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
+    LOGS.info(f'{experiment:s} - {version:s} done')
 
     factbook = "factbook-2001"
-    logger.info(f'{experiment:s} - {version:s} start')
-    logger.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
+    LOGS.info(f'{experiment:s} - {version:s} start')
+    LOGS.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
     for field in get_fields(experiment, version, factbook, step_alpha_timestamp):
         get_fields_factbook_2001(factbook, field)
-    logger.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
-    logger.info(f'{experiment:s} - {version:s} done')
+    LOGS.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
+    LOGS.info(f'{experiment:s} - {version:s} done')
 
     factbook = "factbook-2002"
-    logger.info(f'{experiment:s} - {version:s} start')
-    logger.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
+    LOGS.info(f'{experiment:s} - {version:s} start')
+    LOGS.info(f'get_fields start: {factbook:s} - {step_alpha_timestamp:s}')
     for field in get_fields(experiment, version, factbook, step_alpha_timestamp):
         get_fields_factbook_2002(factbook, field)
-    logger.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
-    logger.info(f'{experiment:s} - {version:s} done')
+    LOGS.info(f'get_fields done: {factbook:s} - {step_alpha_timestamp:s}')
+    LOGS.info(f'{experiment:s} - {version:s} done')
 
 if __name__ == '__main__':
     main()

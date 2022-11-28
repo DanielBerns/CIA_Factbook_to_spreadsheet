@@ -17,8 +17,12 @@ class HelpersTestCase(unittest.TestCase):
         directory = actions.helpers.get_directory(path)
         print('verify id', id(directory), id(path))
 
+    def test_default_data_directory(self):
+        directory = actions.helpers.default_data_directory('test', 'alpha')
+        assert directory.exists()
+
     def test_default_reports_directory(self):
-        directory = actions.helpers.default_reports_directory('test')
+        directory = actions.helpers.default_reports_directory('test', 'alpha')
         assert directory.exists()
         
     def test_get_args(self):

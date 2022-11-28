@@ -36,7 +36,7 @@ class ActionsTestCase(unittest.TestCase):
     def test_iterate_factbook_files(self):
         print('\n')
         for event in actions.readers.iterate_factbook_files(first_year=2005, last_year=2007):
-            print(event.factbook, '-', event.root, '-', event.filename, ':', event.mimetype)
+            print(event.factbook, '-', event.label, '-', event.filename, ':', event.mimetype)
 
 
 if __name__ == '__main__':
