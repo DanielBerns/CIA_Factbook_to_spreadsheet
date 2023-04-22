@@ -5,7 +5,13 @@ from pathlib import Path
 import unittest
 
 
-class ActionsTestCase(unittest.TestCase):
+class ProcessorsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        actions.logs.LOGS.info('ProcessorsTestCase start')
+        
+    def tearDown(self):
+        actions.logs.LOGS.info('ProcessorsTestCase stop')
         
     def test_filters(self):
         a_filter = actions.processors.FactbookFilter(

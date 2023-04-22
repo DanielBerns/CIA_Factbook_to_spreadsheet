@@ -3,5 +3,5 @@ from actions.readers.readers import (
     readlines_text_file,
     FactbookFilesEvent,
     read_factbook_files_event,
-    iterate_factbook_files,
+    iterate_factbook_events,
 )

@@ -3,9 +3,8 @@ from pathlib import Path
 
 from typing import Callable, Optional
 
-
-def logs_path(reports_directory: Path) -> Path:
-    return get_directory(Path(reports_directory, "logs"))
+from actions.config import Config, APPLICATION, VERSION
+from actions.helpers import get_directory
 
 
 def add_stream_handler(
@@ -44,8 +43,6 @@ def get_logger(
     add_handler(logger)
     return logger
 
-from actions.config import Config, APPLICATION, VERSION
-from actions.helpers import get_directory
 
 
 def start_logs() -> None:
@@ -54,9 +51,10 @@ def start_logs() -> None:
         print('STDOUT logging')
         log_handler = lambda logger: add_stream_handler(logger)
     else:
-        print('Logs directory:', Config.APPLICATION_REPORTS)
+        p = get_directory(Config.APPLICATION_LOGS)
+        print('Text File logging :', p)
         log_handler = lambda logger: add_rotating_file_handler(
-            logger, reports_directory=Config.APPLICATION_REPORTS
+            logger, reports_directory=p
         )
     identifier = f"{APPLICATION:s}-{VERSION:s}"
     return get_logger(identifier, log_handler)

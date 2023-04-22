@@ -6,6 +6,12 @@ import unittest
 
 
 class SubstringsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        actions.logs.LOGS.info('SubstringsTestCase start')
+        
+    def tearDown(self):
+        actions.logs.LOGS.info('SubstringsTestCase stop')
         
     def test_compare_text(self):
         a, b = 1, 2

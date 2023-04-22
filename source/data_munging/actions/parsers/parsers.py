@@ -20,7 +20,7 @@ class Source:
         self._begin: int = begin
         self._end: int = end
         self._cursor: int = begin
-        # self._table: Table = get_table(content)
+        self._table: Table = get_table(content)
 
     @property
     def content(self) -> str:
@@ -258,7 +258,6 @@ class Document(Sequence):
 
     def process(self, source: Source) -> bool:
         matched = super().process(source)
-        LOGS.info(f'Document.process: {self.identifier:s} == {str(matched):s}')
     
     def report(self, target: TextIO) -> None:
         target.write(f'## {self.identifier:s}\n')

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from actions.readers import (
     read_factbook_files_event,
-    iterate_factbook_files,
+    iterate_factbook_events,
     FactbookFilesEvent,
     slurp_text_file,
 )
@@ -91,6 +91,7 @@ class EventCounterProcessor(EventProcessor):
         for key, value in self.store.items():
             target.write(f'{key:s}: {value:d}\n')
 
+
 class FactbookFilesMimetypeProcessor(EventProcessor):
     def __init__(self) -> None:
         store: Dict = defaultdict(
@@ -174,11 +175,11 @@ class FactbookFilesContentProcessor:
 def create_report(
     experiment: str, 
     version: str, 
-    folder: str, 
+    label: str, 
     filename: str,
     directory: Path = Config.APPLICATION_REPORTS
     ):
-    base = get_directory(Path(directory, experiment, version, folder))
+    base = get_directory(Path(directory, experiment, version, label))
     with open(Path(directory, filename), "w") as resource:
         try:
             yield resource
@@ -190,10 +191,10 @@ def create_report(
 def write_file(
     experiment: str, 
     version: str, 
-    folder: str, 
+    label: str, 
     filename: str,
     directory: Path = Config.APPLICATION_DATA):
-    base = get_directory(Path(directory, experiment, version, folder))
+    base = get_directory(Path(directory, experiment, version, label))
     with open(Path(base, filename), "w") as resource:
         try:
             yield resource
@@ -204,10 +205,10 @@ def write_file(
 def read_file(
     experiment: str, 
     version: str, 
-    folder: str, 
+    label: str, 
     filename: str,
     directory: Path = Config.APPLICATION_DATA):
-    base = get_directory(Path(directory, experiment, version, folder))
+    base = get_directory(Path(directory, experiment, version, label))
     with open(Path(base, filename), "r") as resource:
         try:
             yield resource

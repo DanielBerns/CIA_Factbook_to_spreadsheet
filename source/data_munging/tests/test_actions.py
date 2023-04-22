@@ -9,7 +9,14 @@ def print_text(text: str) -> None:
     print('end', text[-80:])
     print('length', len(text))
 
+
 class ActionsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        actions.logs.LOGS.info('ActionsTestCase start')
+        
+    def tearDown(self):
+        actions.logs.LOGS.info('ActionsTestCase stop')
         
     def test_compare_text(self):
         a, b = 1, 2

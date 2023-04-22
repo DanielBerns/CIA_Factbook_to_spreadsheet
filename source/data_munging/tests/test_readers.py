@@ -4,7 +4,13 @@ from pathlib import Path
 
 import unittest
 
-class DataMungingCase(unittest.TestCase):
+class ReadersCase(unittest.TestCase):
+
+    def setUp(self):
+        actions.logs.LOGS.info('ReadersTestCase start')
+        
+    def tearDown(self):
+        actions.logs.LOGS.info('ReadersTestCase stop')
 
     def test_slurp_text_file(self):
         print('\n')
@@ -21,10 +27,10 @@ class DataMungingCase(unittest.TestCase):
                          "download.txt").expanduser()
         assert all(len(line) for line in actions.readers.readlines_text_file(text_path))
             
-    def test_iterate_factbook_files(self):
+    def test_iterate_factbook_events(self):
         print('\n')
-        for event in actions.readers.iterate_factbook_files(first_year=2005, last_year=2007):
-            print(event.factbook, '-', event.root, '-', event.filename, ':', event.mimetype)
+        for event in actions.readers.iterate_factbook_events(first_year=2005, last_year=2007):
+            print(event.factbook, '-', event.label, '-', event.filename, ':', event.mimetype)
             
 
 if __name__ == '__main__':

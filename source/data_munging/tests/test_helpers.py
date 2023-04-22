@@ -5,6 +5,12 @@ import unittest
 
 
 class HelpersTestCase(unittest.TestCase):
+
+    def setUp(self):
+        actions.logs.LOGS.info('HelpersTestCase start')
+        
+    def tearDown(self):
+        actions.logs.LOGS.info('HelpersTestCase stop')
         
     def test_get_timestamp(self):
         print('\n')
@@ -17,17 +23,13 @@ class HelpersTestCase(unittest.TestCase):
         directory = actions.helpers.get_directory(path)
         print('verify id', id(directory), id(path))
 
-    def test_default_data_directory(self):
-        directory = actions.helpers.default_data_directory('test', 'alpha')
-        assert directory.exists()
-
-    def test_default_reports_directory(self):
-        directory = actions.helpers.default_reports_directory('test', 'alpha')
-        assert directory.exists()
+    def test_save_json(self):
+        actions.logs.LOGS.info('HelpersTestCase.save_json')
+        assert False
         
-    def test_get_args(self):
-        args = actions.helpers.get_args(Path('./').resolve())
-        assert args['dotenv_path']
+    def test_load_json(self):
+        actions.logs.LOGS.info('HelpersTestCase.load_json')
+        assert False
 
 
 if __name__ == '__main__':

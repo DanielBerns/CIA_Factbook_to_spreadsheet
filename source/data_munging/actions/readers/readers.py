@@ -42,7 +42,7 @@ FIRST_YEAR: int = 2000
 LAST_YEAR: int = 2020
 
 
-def iterate_factbook_files(
+def iterate_factbook_events(
     first_year: int = FIRST_YEAR, last_year: int = LAST_YEAR
 ) -> Generator[FactbookFilesEvent, None, None]:
     assert FIRST_YEAR <= first_year <= LAST_YEAR
