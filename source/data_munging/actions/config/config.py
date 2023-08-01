@@ -8,20 +8,23 @@ from typing import Dict
 # https://pypi.org/project/python-dotenv/
 from dotenv import load_dotenv
 
-APPLICATION = "CIA_World_Factbook_Albatros"
+CONTEXT = "actions"
 VERSION = "alpha"
-WORLD_FACTBOOK_RAW_DATA = Path("~", "Data", "CIA", "factbook", "factbook_html_zip").expanduser()
 
+def build_root(application: str) -> Path:
+    root = Path('~', 'Data', application, CONTEXT, VERSION).expanduser()
+    return root
 
-def get_args(application_data: str) -> Dict[str, str]:
+def get_args() -> Dict[str, str]:
     """Construct the argument parser and parse the arguments"""
     parser = argparse.ArgumentParser()
+    default_dotenv = '.env'
     parser.add_argument(
         "-d",
-        "--dotenv_path",
+        "--dotenv",
         type=str,
-        default=application_data,
-        help="path where dotenv lives",
+        default=default_dotenv,
+        help=f"default dotenv: {default_dotenv:s}",
     )
     args = vars(parser.parse_args())
     return args
@@ -77,7 +80,7 @@ def set_environment_variables(application: str, version: str) -> None:
     print("set_environment_variables done")
 
 
-set_environment_variables(APPLICATION, VERSION)
+set_environment_variables(CONTEXT, VERSION)
 
 
 class Config:

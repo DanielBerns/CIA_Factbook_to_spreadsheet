@@ -19,7 +19,7 @@ class SubstringsTestCase(unittest.TestCase):
         blue = f"testing nada color azul"
         collector = actions.substrings.compare(red, blue)
         print('\n')
-        for key, start, stop in actions.substrings.common_substrings(collector):
+        for key, start, stop in actions.substrings.collected_substrings(collector):
             print(start, stop, key)
 
     def test_compare_html(self):
@@ -30,7 +30,7 @@ class SubstringsTestCase(unittest.TestCase):
         ac_text = actions.readers.slurp_text_file(ac_path)
         collector = actions.substrings.compare(aa_text, ac_text)
         print('\n')
-        for key, start, stop in actions.substrings.common_substrings(collector):
+        for key, start, stop in actions.substrings.collected_substrings(collector):
             print(start, stop, key)
 
 

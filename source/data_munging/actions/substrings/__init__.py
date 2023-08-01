@@ -1,1 +1,1 @@
-from actions.substrings.substrings import compare, common_substrings
+from actions.substrings.substrings import compare, collected_substrings
