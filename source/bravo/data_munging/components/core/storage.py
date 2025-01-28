@@ -7,20 +7,20 @@ from components.core.helpers import (
 )
 
 
-class FileSystem:
+class Storage:
     def __init__(self, application: str, context: str, version: str) -> None:
         self._application: str = application
         self._context: str = context
         self._version: str = version
-        base = Path('~', 'info', application, context, version)
+        base = Path('~', 'Apps', application, context, version)
         self._base: Path = get_container(base)
-        self._dotenv: Path = Path(base, ".env")
-        self._data: Path = get_container(Path(base, "data"))
-        self._results: Path = get_container(Path(base, "results"))
+        self._dotenv: Path = Path(self.base, ".env")
+        self._inputs: Path = get_container(Path(base, "inputs"))
+        self._outputs: Path = get_container(Path(base, "outputs"))
         self._reports: Path = get_container(Path(base, "reports"))
-        self._logs: Path = get_container(Path(base, "logs")
+        self._logs: Path = get_container(Path(base, "logs"))
         self._commands: Path = get_container(Path(base, "commands"))
-        
+
     @property
     def application(self) -> str:
         return self._application
@@ -42,12 +42,12 @@ class FileSystem:
         return self._dotenv
 
     @property
-    def data(self) -> Path:
-        return self._data
+    def inputs(self) -> Path:
+        return self._inputs
 
     @property
-    def results(self) -> Path:
-        return self._results
+    def outputs(self) -> Path:
+        return self._outputs
 
     @property
     def reports(self) -> Path:
